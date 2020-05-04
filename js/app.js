@@ -8,8 +8,8 @@ const Redirect = window.ReactRouterDOM.Redirect;
 const routing = (
     <Router>
         <div>
-            <Route path="/" component={Welcome}/>
-            <Route path="/bid" component={Bid}/>
+            <Route path="/bid" component={Welcome}/>
+            <Route path="/" component={Bid}/>
         </div>
     </Router>
 );
