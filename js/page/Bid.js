@@ -11,6 +11,10 @@ class Bid extends React.Component {
             ok: "Ok",
             cancel: "Cancel"
         };
+
+        this.modalCallbacks = {
+            onCancelClick: this.toggleModal.bind(this)
+        }
     }
 
     state = {
@@ -19,10 +23,17 @@ class Bid extends React.Component {
     };
 
     loadLots() {
-        let lots = this.state.lots;
-        this.setState({lots: lots.concat(this.controller.getLots(lots.length, this.PACK_SIZE))})
+        this.controller.getLots(this.state.lots.length, this.PACK_SIZE)
+            .then(lots => {
+                if (lots) {
+                    this.setState({lots: this.state.lots.concat(lots)});
+                }
+            });
     }
 
+    toggleModal() {
+        this.setState({openModal: !this.state.openModal})
+    }
 
     isSold(product) {
         let now = new Date();
@@ -31,24 +42,42 @@ class Bid extends React.Component {
         return now >= end;
     };
 
+    componentDidMount() {
+        this.loadLots();
+    }
+
     render() {
-        console.log(this.state.lots);
         const lots = this.state.lots.map(lot => {
+            let start = `${lot.start.day}\\${lot.start.month}\\${lot.start.year} ${lot.start.hour}:${lot.start.min}:${lot.start.sec}`;
+            let end = `${lot.end.day}\\${lot.end.month}\\${lot.end.year} ${lot.end.hour}:${lot.end.min}:${lot.end.sec}`;
             return (
-                <tr className={"clickable product_info" + this.isSold(lot) && "sold"} key={lot.id}>
-                    <td>{lot.id}</td>
-                    <td>{lot.title}</td>
-                    <td>start</td>
-                    <td>end</td>
-                    <td>{lot.bid }</td>
-                    <td>{lot.price}</td>
-                </tr>
+                <React.Fragment key={lot.id}>
+                    <tr className={"clickable product_info " + (this.isSold(lot) ? "sold" : "")} >
+                        <td>{lot.id}</td>
+                        <td>{lot.title}</td>
+                        <td>{start}</td>
+                        <td>{end}</td>
+                        <td>{lot.bid }</td>
+                        <td>{lot.price}</td>
+                    </tr>
+                    <tr className="product_description">
+                        <td colSpan="6">
+                            <div className="description_container">
+                                <span>Description: </span>
+                                <div className="description">{lot.description}</div>
+                                <div className="bid_container">
+                                    <button className="add_bid_button" onClick={this.toggleModal.bind(this)}>place bid</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </React.Fragment>
             )
 
         });
         return(
             <div>
-                {this.state.openModal && <PlaceBidModal titles={this.modalTitles}/>}
+                {this.state.openModal && <PlaceBidModal titles={this.modalTitles} callbacks={this.modalCallbacks}/>}
                 <table className="product_table">
                     <thead>
                     <tr className="product_info">

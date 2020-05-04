@@ -27,7 +27,7 @@
     align-items: flex-start;
 }
 
-description {
+.description {
     width: 100%;
     height: 80%;
     text-align: start;
@@ -35,7 +35,7 @@ description {
     font-size: 2vw;
 }
 
-bid {
+.bid_container {
     width: 100%;
     display: flex;
     justify-content: flex-end;
