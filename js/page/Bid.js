@@ -13,13 +13,19 @@ class Bid extends React.Component {
         };
 
         this.modalCallbacks = {
-            onCancelClick: this.toggleModal.bind(this)
+            onCancelClick: this.toggleModal.bind(this),
+            onOkClick: this.updateLot.bind(this)
+        };
+
+        this.lotCallbacks = {
+            onBidClick: this.toggleModal.bind(this)
         }
     }
 
     state = {
         openModal: false,
-        lots: []
+        lots: [],
+        numberProducts: 0
     };
 
     loadLots() {
@@ -28,53 +34,40 @@ class Bid extends React.Component {
                 if (lots) {
                     this.setState({lots: this.state.lots.concat(lots)});
                 }
+            })
+            .then(() => {
+                this.controller.getNumberProducts()
+                    .then(numberProducts => {
+                        this.setState({numberProducts: numberProducts})
+                    })
             });
     }
 
-    toggleModal() {
-        this.setState({openModal: !this.state.openModal})
+    toggleModal(updatableLot) {
+        this.setState({
+            openModal: !this.state.openModal,
+            updatableLot: updatableLot
+        })
     }
 
-    isSold(product) {
-        let now = new Date();
-        let end = new Date(product.end.year, product.end.month - 1,
-            product.end.day, product.end.hour, product.end.min, product.end.sec, 0);
-        return now >= end;
-    };
+    updateLot(bid) {
+        let lot = this.state.updatableLot;
+        lot.bid = bid;
+        this.controller.saveOrUpdateProduct(lot)
+            .then(() => this.toggleModal())
+            .then(() => {
+                let lots = this.state.lots.map(item => (item.id === lot.id ? lot : item));
+                this.setState({lots: lots});
+            })
+    }
 
     componentDidMount() {
         this.loadLots();
     }
 
     render() {
-        const lots = this.state.lots.map(lot => {
-            let start = `${lot.start.day}\\${lot.start.month}\\${lot.start.year} ${lot.start.hour}:${lot.start.min}:${lot.start.sec}`;
-            let end = `${lot.end.day}\\${lot.end.month}\\${lot.end.year} ${lot.end.hour}:${lot.end.min}:${lot.end.sec}`;
-            return (
-                <React.Fragment key={lot.id}>
-                    <tr className={"clickable product_info " + (this.isSold(lot) ? "sold" : "")} >
-                        <td>{lot.id}</td>
-                        <td>{lot.title}</td>
-                        <td>{start}</td>
-                        <td>{end}</td>
-                        <td>{lot.bid }</td>
-                        <td>{lot.price}</td>
-                    </tr>
-                    <tr className="product_description">
-                        <td colSpan="6">
-                            <div className="description_container">
-                                <span>Description: </span>
-                                <div className="description">{lot.description}</div>
-                                <div className="bid_container">
-                                    <button className="add_bid_button" onClick={this.toggleModal.bind(this)}>place bid</button>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </React.Fragment>
-            )
-
-        });
+        console.log();
+        const lots = this.state.lots.map(lot => <Lot lot={lot} callbacks={this.lotCallbacks} key={lot.id}/>);
         return(
             <div>
                 {this.state.openModal && <PlaceBidModal titles={this.modalTitles} callbacks={this.modalCallbacks}/>}
@@ -93,9 +86,11 @@ class Bid extends React.Component {
                         {lots}
                     </tbody>
                 </table>
+                {(this.state.numberProducts > this.state.lots.length) &&
                 <div className="product_load_container">
                     <button className="product_load_butt" onClick={this.loadLots.bind(this)}>Load</button>
-                </div>
+                </div>}
+                <button className="logout_butt" onClick={() => this.props.history.push("/welcome")}> Logout</button>
             </div>
         )
     }

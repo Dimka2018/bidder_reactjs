@@ -24,5 +24,30 @@ class BidController {
                 };
             };
         });
+    };
+
+    getNumberProducts() {
+        return new Promise((resolve) => {
+            let request = window.indexedDB.open("BidDB", 1);
+            request.onsuccess = (event) => {
+                let transaction = event.target.result.transaction(["products"]);
+                let productStore = transaction.objectStore("products");
+                productStore.count().onsuccess = event => {
+                    resolve(event.target.result);
+                };
+            }
+        });
+    };
+    saveOrUpdateProduct(product) {
+        return new Promise(resolve => {
+            let request = window.indexedDB.open("BidDB", 1);
+            request.onsuccess = event => {
+                let transaction = event.target.result.transaction(["products"], "readwrite");
+                let productStore = transaction.objectStore("products");
+                productStore.put(product);
+                resolve();
+            };
+        });
     }
+
 }
