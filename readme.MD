@@ -2,7 +2,7 @@
 
 Simple react js example
 
-<img src="images/react.png" alt="react" width="100" height="100"/>
+<img src="images/react.png" alt="react" width="200" height="100"/>
 
 ##### Technologies:
 * HTML, CSS, JS, React JS
